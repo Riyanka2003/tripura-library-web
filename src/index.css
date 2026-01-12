@@ -1,0 +1,115 @@
+/* 1. Tailwind Directives (Must be at the top) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. Global Resets for the "Digital Archive" feel */
+:root {
+  color-scheme: dark; /* Forces scrollbars to be dark by default */
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: 'Inter', sans-serif; /* Default font */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* 3. Custom Utilities referenced in your layout */
+
+/* This hides the scrollbar in the filter bar but allows scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Force the Mono font for specific headers if utility class fails */
+.font-mono {
+  font-family: 'Space Mono', monospace;
+}
+/* --- Add to the bottom of src/index.css --- */
+
+/* Define the scrolling logic */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* Move half the width (since we duplicate content) */
+}
+
+/* Apply the animation class */
+.animate-marquee {
+  display: flex;
+  width: fit-content; /* Ensure container is wide enough for all text */
+  animation: marquee 25s linear infinite; /* Adjust '25s' to make it faster/slower */
+}
+
+/* Optional: Pause on hover for better UX */
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+/* =========================================
+   MOBILE RESPONSIVE RULES
+   (Applies only when screen is smaller than 768px)
+   ========================================= */
+@media screen and (max-width: 768px) {
+
+  /* 1. CONTAINER: Use full width, no massive side margins */
+  .container, .app-wrapper {
+    width: 100% !important;
+    padding: 15px !important;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+  }
+
+  /* 2. HERO TITLE ("Dynasty"): Make it smaller but punchy */
+  h1, .title-text {
+    font-size: 2.5rem !important; /* Smaller than desktop */
+    line-height: 1.2;
+    margin-top: 20px;
+  }
+
+  /* 3. SUBTITLE: Readable size */
+  p, .subtitle {
+    font-size: 1rem !important;
+    padding: 0 10px;
+    width: 100%;
+  }
+
+  /* 4. SEARCH BAR: Full width for thumbs */
+  .search-container, .input-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-direction: row; /* Keep button next to text */
+  }
+
+  input[type="text"] {
+    font-size: 16px !important; /* Prevents iPhone zoom on focus */
+    padding: 15px !important; /* Easier to tap */
+  }
+
+  /* 5. SEARCH BUTTON: Bigger tap target */
+  button.search-btn {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  /* 6. RESULT CARD: Stack vertically, take full width */
+  .result-card, .response-box {
+    width: 95% !important;
+    margin: 20px auto !important;
+    padding: 20px !important;
+    position: relative; /* Stop it from floating weirdly */
+    bottom: auto;
+  }
+
+  /* 7. PROFILE SIDEBAR: Hide text, show only icon (optional) */
+  .sidebar, .my-profile {
+    width: 50px !important;
+    padding: 10px !important;
+  }
+  
+  .sidebar span {
+    display: none; /* Hide text label on mobile */
+  }
+}
