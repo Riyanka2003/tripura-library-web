@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Share2, Heart, Eye, Loader, Sparkles } from 'lucide-react';
+import { ArrowLeft, BookOpen, Share2, Heart, Eye, Loader, Sparkles, X } from 'lucide-react';
 import { supabase } from './supabaseClient'; 
 
 export default function BookDetail() {
@@ -10,6 +10,9 @@ export default function BookDetail() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  
+  // --- SECURE READER STATE ---
+  const [showReader, setShowReader] = useState(false);
 
   // --- FETCH DATA ---
   useEffect(() => {
@@ -47,57 +50,70 @@ export default function BookDetail() {
   };
 
   // --- PHYSICS CURSOR ---
-    const trailRef = useRef([]);
-    const mouseRef = useRef({ x: 0, y: 0 });
-    const TRAIL_COUNT = 200;
+  const trailRef = useRef([]);
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const TRAIL_COUNT = 100;
+  useEffect(() => {
+     const points = Array(TRAIL_COUNT).fill().map(() => ({ x: 0, y: 0 }));
+     const handleMouseMove = (e) => {
+       mouseRef.current = { x: e.clientX, y: e.clientY };
+       if (points[0].x === 0 && points[0].y === 0) points.forEach(p => { p.x = e.clientX; p.y = e.clientY; });
+     };
+     window.addEventListener('mousemove', handleMouseMove);
+     const animate = () => {
+       let head = points[0];
+       head.x += (mouseRef.current.x - head.x) * 0.9;
+       head.y += (mouseRef.current.y - head.y) * 0.9;
+       for (let i = 1; i < TRAIL_COUNT; i++) {
+         const prev = points[i - 1];
+         const curr = points[i];
+         curr.x += (prev.x - curr.x) * 0.8;
+         curr.y += (prev.y - curr.y) * 0.8;
+       }
+       trailRef.current.forEach((el, index) => {
+         if (!el) return;
+         const p = points[index];
+         el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+       });
+       requestAnimationFrame(animate);
+     };
+     const animationId = requestAnimationFrame(animate);
+     return () => { window.removeEventListener('mousemove', handleMouseMove); cancelAnimationFrame(animationId); };
+  }, []);
   
-    useEffect(() => {
-      const points = Array(TRAIL_COUNT).fill().map(() => ({ x: 0, y: 0 }));
-      const handleMouseMove = (e) => {
-        mouseRef.current = { x: e.clientX, y: e.clientY };
-        if (points[0].x === 0 && points[0].y === 0) {
-          points.forEach(p => { p.x = e.clientX; p.y = e.clientY; });
-        }
-      };
-      window.addEventListener('mousemove', handleMouseMove);
-  
-      const animate = () => {
-        let head = points[0];
-        head.x += (mouseRef.current.x - head.x) * 0.9;
-        head.y += (mouseRef.current.y - head.y) * 0.9;
-  
-        for (let i = 1; i < TRAIL_COUNT; i++) {
-          const prev = points[i - 1];
-          const curr = points[i];
-          curr.x += (prev.x - curr.x) * 0.9;
-          curr.y += (prev.y - curr.y) * 0.9;
-        }
-  
-        trailRef.current.forEach((el, index) => {
-          if (!el) return;
-          const p = points[index];
-          el.style.transform = `translate(${p.x}px, ${p.y}px)`;
-        });
-        requestAnimationFrame(animate);
-      };
-      
-      const animationId = requestAnimationFrame(animate);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        cancelAnimationFrame(animationId);
-      };
-    }, []);
-  
-    const getSegmentStyle = (index) => {
-      let size = 'w-2 h-2'; 
-      if (index > 20) size = 'w-2 h-2'; 
-      if (index > 70) size = 'w-2 h-2'; 
-      return `${size} ${index < 75 ? 'bg-acid-lime' : 'bg-white'}`;
+  const getSegmentStyle = (index) => {
+     let size = index > 50 ? 'w-1 h-1' : 'w-2 h-2';
+     return `${size} ${index < 30 ? 'bg-acid-lime' : 'bg-white'}`;
   };
 
   return (
     <div className="relative min-h-screen w-full font-sans cursor-none bg-black selection:bg-acid-lime selection:text-black flex items-center justify-center p-6 md:p-12 overflow-hidden">
       
+      {/* --- SECURE PDF READER MODAL --- */}
+      {showReader && book && (
+          <div className="fixed inset-0 z-[200] bg-black flex flex-col animate-fadeIn">
+              {/* Toolbar */}
+              <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-neutral-900 pointer-events-auto cursor-default">
+                  <h3 className="text-white font-serif italic truncate w-1/2">{book.title}</h3>
+                  <button onClick={() => setShowReader(false)} className="p-2 bg-white/10 hover:bg-red-500/20 hover:text-red-500 rounded-full transition-colors cursor-pointer">
+                      <X size={24} />
+                  </button>
+              </div>
+              
+              {/* PDF Container */}
+              <div className="flex-1 relative bg-neutral-800 flex items-center justify-center pointer-events-auto cursor-default" onContextMenu={(e) => e.preventDefault()}>
+                  {/* The Iframe with #toolbar=0 to hide download controls */}
+                  <iframe 
+                      src={`${book.pdf_url}#toolbar=0&navpanes=0&scrollbar=0`}
+                      className="w-full h-full border-none"
+                      title="Secure Reader"
+                  />
+                  {/* Invisible Overlay to block right-clicks near edges */}
+                  <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]"></div>
+              </div>
+          </div>
+      )}
+
       {/* --- BACKGROUND LAYERS --- */}
       <div className="fixed inset-0 z-0 pointer-events-none">
          <img src="/assets/bg_library.jpg" onError={(e) => { e.target.src = "/assets/Unakoti.png"; }} alt="Background" 
@@ -139,56 +155,31 @@ export default function BookDetail() {
                 
                 {/* --- LEFT COLUMN: THE MUSEUM FRAME --- */}
                 <div className="lg:col-span-5 flex justify-center lg:justify-end relative group">
-                    
-                    {/* 1. FRAME CONTAINER */}
-                    <div className="relative p-[25px] rounded-lg border-2 border-[#1a1510]
-                        bg-gradient-to-br from-[#5e4b35] via-[#2e231b] to-[#5e4b35]
-                        shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.05)]
-                    ">
-                        
-                        {/* 2. INNER BEVEL */}
+                    <div className="relative p-[25px] rounded-lg border-2 border-[#1a1510] bg-gradient-to-br from-[#5e4b35] via-[#2e231b] to-[#5e4b35] shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.05)]">
                         <div className="absolute inset-0 rounded-lg pointer-events-none shadow-[inset_0_0_20px_rgba(0,0,0,0.8),inset_2px_2px_5px_rgba(255,255,255,0.1)]"></div>
-
-                        {/* 3. GOLD CORNER ORNAMENTS */}
                         <div className="absolute top-2 left-2 w-10 h-10 border-t-2 border-l-2 border-[#c5a059] rounded-tl-lg shadow-[0_0_10px_#c5a059_80] opacity-80"></div>
                         <div className="absolute top-2 right-2 w-10 h-10 border-t-2 border-r-2 border-[#c5a059] rounded-tr-lg shadow-[0_0_10px_#c5a059_80] opacity-80"></div>
                         <div className="absolute bottom-2 left-2 w-10 h-10 border-b-2 border-l-2 border-[#c5a059] rounded-bl-lg shadow-[0_0_10px_#c5a059_80] opacity-80"></div>
                         <div className="absolute bottom-2 right-2 w-10 h-10 border-b-2 border-r-2 border-[#c5a059] rounded-br-lg shadow-[0_0_10px_#c5a059_80] opacity-80"></div>
-
-                        {/* 4. INNER MATTING */}
                         <div className="bg-[#121212] p-4 shadow-[inset_0_0_30px_rgba(0,0,0,1)] border border-[#ffffff05]">
-                            
-                            {/* 5. THE BOOK */}
                             {book.cover_url ? (
-                                <img 
-                                    src={book.cover_url} 
-                                    alt="Cover" 
-                                    className="w-[300px] h-[450px] object-cover shadow-[0_15px_40px_rgba(0,0,0,1)] 
-                                               group-hover:scale-[1.02] transition-transform duration-700 ease-out" 
-                                />
+                                <img src={book.cover_url} alt="Cover" className="w-[300px] h-[450px] object-cover shadow-[0_15px_40px_rgba(0,0,0,1)] group-hover:scale-[1.02] transition-transform duration-700 ease-out" />
                             ) : (
                                 <div className="w-[300px] h-[450px] flex flex-col items-center justify-center bg-neutral-900 text-white/20 gap-4 shadow-[0_15px_40px_rgba(0,0,0,1)]">
                                     <BookOpen size={60} />
                                     <span className="text-xs uppercase tracking-widest">No Cover</span>
                                 </div>
                             )}
-
-                            {/* 6. LIGHTING OVERLAY */}
                             <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none mix-blend-overlay"></div>
                         </div>
                     </div>
                 </div>
 
-                {/* --- RIGHT COLUMN: DETAILS BOX (WITH NEW SHADOWS) --- */}
+                {/* --- RIGHT COLUMN: DETAILS BOX --- */}
                 <div className="lg:col-span-7 animate-slideUp">
-                    {/* UPDATED: Added deep drop shadow and subtle acid-lime glow behind the box */}
-                    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-8 md:p-12 rounded-3xl 
-                        shadow-[0_40px_80px_rgba(0,0,0,0.8),0_0_30px_rgba(204,255,0,0.05),0_0_0_1px_rgba(255,255,255,0.1)]">
-                        
-                        {/* Decorative Top Line */}
+                    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-8 md:p-12 rounded-3xl shadow-[0_40px_80px_rgba(0,0,0,0.8),0_0_30px_rgba(204,255,0,0.05),0_0_0_1px_rgba(255,255,255,0.1)]">
                         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-acid-lime/50 to-transparent opacity-50"></div>
 
-                        {/* Metadata Tags */}
                         <div className="flex flex-wrap items-center gap-3 mb-8">
                             <span className="px-4 py-1.5 bg-acid-lime text-black font-bold text-[10px] uppercase tracking-widest rounded-full flex items-center gap-2 shadow-[0_0_10px_rgba(204,255,0,0.3)]">
                                 <Sparkles size={10} /> {book.category}
@@ -203,23 +194,23 @@ export default function BookDetail() {
                             )}
                         </div>
 
-                        {/* Title & Author */}
                         <h1 className="text-4xl md:text-6xl font-serif text-white italic mb-4 leading-[1.1]">{book.title}</h1>
                         <p className="text-lg md:text-xl text-acid-lime mb-8 font-mono border-b border-white/10 pb-8 inline-block pr-12">
                             Authored by {book.author}
                         </p>
 
-                        {/* Description */}
                         <div className="mb-10 text-white/70 leading-relaxed font-light text-sm md:text-base max-w-2xl">
                             {book.description || "No description provided for this archival document."}
                         </div>
 
-                        {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <a href={book.pdf_url} target="_blank" rel="noopener noreferrer" 
-                               className="flex-1 bg-acid-lime text-black py-4 px-8 rounded-xl font-bold uppercase tracking-widest hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(204,255,0,0.3)] cursor-none flex items-center justify-center gap-3">
+                            {/* CHANGED: Open secure reader instead of direct link */}
+                            <button 
+                               onClick={() => setShowReader(true)}
+                               className="flex-1 bg-acid-lime text-black py-4 px-8 rounded-xl font-bold uppercase tracking-widest hover:bg-white hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(204,255,0,0.3)] cursor-none flex items-center justify-center gap-3"
+                            >
                                 <Eye size={20} /> Start Reading
-                            </a>
+                            </button>
                             
                             <div className="flex gap-4">
                                 <button 

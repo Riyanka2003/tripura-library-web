@@ -275,30 +275,36 @@ export default function ImposterEbookLayout() {
         <MessageSquare size={24} />
       </button>
 
-      {/* 2. Modal */}
+      {/* 2. Modal (FIXED: CURSOR VISIBILITY) */}
       {showFeedback && (
           <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-neutral-900 border border-white/20 p-8 rounded-2xl w-full max-w-md relative shadow-[0_0_50px_rgba(204,255,0,0.2)]">
-                  <button onClick={() => setShowFeedback(false)} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-none"><X size={20}/></button>
+              {/* Added 'cursor-default' here so the mouse is visible inside the box */}
+              <div className="bg-neutral-900 border border-white/20 p-8 rounded-2xl w-full max-w-md relative shadow-[0_0_50px_rgba(204,255,0,0.2)] cursor-default pointer-events-auto">
+                  
+                  <button onClick={() => setShowFeedback(false)} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer">
+                      <X size={20}/>
+                  </button>
+                  
                   <h2 className="text-3xl font-serif text-white italic mb-2">Rate Us</h2>
                   <p className="text-sm text-white/50 mb-6">How was your archive experience?</p>
                   
                   <div className="flex justify-center gap-2 mb-8">
                       {[1,2,3,4,5].map((star) => (
-                          <button key={star} onClick={() => setRating(star)} className="p-2 transition-transform hover:scale-125 cursor-none">
+                          <button key={star} onClick={() => setRating(star)} className="p-2 transition-transform hover:scale-125 cursor-pointer pointer-events-auto">
                               <Star size={32} fill={rating >= star ? "#ccff00" : "none"} className={rating >= star ? "text-acid-lime" : "text-white/20"} />
                           </button>
                       ))}
                   </div>
 
+                  {/* Added 'cursor-text' here for typing */}
                   <textarea 
-                    className="w-full bg-black border border-white/20 rounded-lg p-4 text-white mb-6 h-32 focus:border-acid-lime outline-none resize-none cursor-none"
+                    className="w-full bg-black border border-white/20 rounded-lg p-4 text-white mb-6 h-32 focus:border-acid-lime outline-none resize-none cursor-text"
                     placeholder="Write your suggestions here..."
                     value={feedbackText}
                     onChange={(e) => setFeedbackText(e.target.value)}
                   ></textarea>
 
-                  <button onClick={submitFeedback} className="w-full bg-acid-lime text-black font-bold py-3 rounded-lg uppercase tracking-widest hover:bg-white transition-colors cursor-none">
+                  <button onClick={submitFeedback} className="w-full bg-acid-lime text-black font-bold py-3 rounded-lg uppercase tracking-widest hover:bg-white transition-colors cursor-pointer">
                       Submit Feedback
                   </button>
               </div>
@@ -364,7 +370,6 @@ export default function ImposterEbookLayout() {
 
                 {/* FILTER OPTIONS */}
                 <div className="animate-fadeIn min-h-[150px] mb-16">
-                    {/* Text Inputs */}
                     {(activeCategory === 'Title' || activeCategory === 'Author' || activeCategory === 'Edition' || activeCategory === 'Subjects') ? (
                         <div className="max-w-4xl">
                             <label className="block text-white/50 text-xs uppercase tracking-widest mb-4">Type to filter by {activeCategory}</label>
@@ -379,7 +384,6 @@ export default function ImposterEbookLayout() {
                             </div>
                         </div>
                     ) : (
-                        /* Button Inputs */
                         <div>
                             <label className="block text-white/50 text-xs uppercase tracking-widest mb-4">Select {activeCategory}</label>
                             <div className="flex flex-wrap gap-3">

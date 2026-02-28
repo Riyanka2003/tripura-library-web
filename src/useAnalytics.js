@@ -1,4 +1,3 @@
-// useAnalytics.js
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -12,34 +11,28 @@ export function useAnalytics() {
       if (!session) return;
 
       const userId = session.user.id;
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const today = new Date().toISOString().split('T')[0];
 
-      // Get current profile
       let { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
       
-      // If no profile exists, create one
       if (!profile) {
         const { data: newProfile } = await supabase.from('profiles').insert([{ id: userId, streak_count: 1, last_active_date: today }]).select().single();
         profile = newProfile;
       }
 
-      // Check dates
       if (profile.last_active_date !== today) {
         const lastDate = new Date(profile.last_active_date);
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         
         let newStreak = profile.streak_count;
-
+        // Check if consecutive day
         if (lastDate.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) {
-          // Continuous streak
           newStreak += 1;
         } else {
-          // Broken streak
           newStreak = 1;
         }
 
-        // Update DB
         await supabase.from('profiles').update({ streak_count: newStreak, last_active_date: today }).eq('id', userId);
         setStreak(newStreak);
       } else {
@@ -50,13 +43,17 @@ export function useAnalytics() {
     updateStreak();
   }, []);
 
-  // 2. EVENT LOGGER FUNCTION
+  // 2. EVENT LOGGER (Crucial for your Charts)
   const logEvent = async (eventType, details = {}, bookId = null) => {
-    await supabase.from('analytics_logs').insert([{
-      event_type: eventType,
-      details: JSON.stringify(details),
-      book_id: bookId
-    }]);
+    try {
+        await supabase.from('analytics_logs').insert([{
+            event_type: eventType,
+            details: JSON.stringify(details), // Stores Standard, Subject, Category
+            book_id: bookId
+        }]);
+    } catch (e) {
+        console.warn("Log failed:", e);
+    }
   };
 
   return { streak, logEvent };
