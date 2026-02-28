@@ -7,17 +7,19 @@ export default function LoginPage({ onLogin }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showPassword, setShowPassword] = useState(false); // Password Visibility Toggle
+  const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
   // --- 1. GOOGLE LOGIN LOGIC ---
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
+      setError(null);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin, // Redirects back to your Vercel site
+          // FIXED: Wrapped the URL in quotes to prevent syntax errors
+          redirectTo: "https://tripura-library-live.vercel.app", 
         },
       });
       if (error) throw error;
@@ -100,7 +102,7 @@ export default function LoginPage({ onLogin }) {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-acid-lime rounded-full mb-6 shadow-[0_0_30px_#ccff00]">
                     <span className="text-3xl font-bold text-black">T</span>
                 </div>
-                {/* 1. FIXED TITLE: Starts with Welcome */}
+                {/* WELCOME TITLE */}
                 <h1 className="text-4xl text-white font-serif italic mb-2">
                     {isSignUp ? "New Identity" : "Welcome"}
                 </h1>
@@ -111,7 +113,7 @@ export default function LoginPage({ onLogin }) {
 
             <div className="space-y-4 backdrop-blur-xl bg-white/5 p-8 rounded-3xl border border-white/10">
                 
-                {/* 2. GOOGLE AUTH BUTTON */}
+                {/* GOOGLE AUTH BUTTON */}
                 <button 
                   onClick={handleGoogleLogin}
                   disabled={loading}
@@ -155,7 +157,7 @@ export default function LoginPage({ onLogin }) {
                               className="w-full bg-black/50 border border-white/20 rounded-lg p-4 text-white focus:border-acid-lime focus:outline-none transition-colors pr-12" 
                               required
                             />
-                            {/* 3. PASSWORD EYE ICON */}
+                            {/* PASSWORD EYE TOGGLE */}
                             <button 
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
@@ -166,7 +168,6 @@ export default function LoginPage({ onLogin }) {
                         </div>
                     </div>
 
-                    {/* 3. FORGOT PASSWORD OPTION */}
                     {!isSignUp && (
                         <div className="text-right">
                             <button 
