@@ -39,7 +39,7 @@ export default function LoginPage({ onLogin }) {
     try {
       setLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${"https://tripura-library-live.vercel.app"}/reset-password`,
       });
       if (error) throw error;
       alert("Reset link sent! Check your inbox.");
