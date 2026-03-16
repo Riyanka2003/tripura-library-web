@@ -48,6 +48,7 @@ export default function AdminPage() {
     const checkHealth = async () => {
         try {
             const { error: dbErr } = await supabase.from('books').select('id', { count: 'exact', head: true });
+            // Ensure it has 'backend' and 'onrender'
             const apiRes = await fetch('https://tripura-library-backend.onrender.com/health'); // Your FastAPI link
             
             setSystemHealth({
