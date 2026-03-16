@@ -48,7 +48,7 @@ export default function AdminPage() {
     const checkHealth = async () => {
         try {
             const { error: dbErr } = await supabase.from('books').select('id', { count: 'exact', head: true });
-            const apiRes = await fetch('https://your-render-api.onrender.com/health'); // Your FastAPI link
+            const apiRes = await fetch('https://tripura-library-backend.onrender.com/health'); // Your FastAPI link
             
             setSystemHealth({
                 db: dbErr ? 'offline' : 'online',
