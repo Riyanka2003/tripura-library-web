@@ -18,7 +18,6 @@ export default function LoginPage({ onLogin }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // FIXED: Wrapped the URL in quotes to prevent syntax errors
           redirectTo: "https://tripura-library-live.vercel.app", 
         },
       });
@@ -99,10 +98,16 @@ export default function LoginPage({ onLogin }) {
 
         <div className="relative z-10 w-full max-w-md p-8">
             <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-acid-lime rounded-full mb-6 shadow-[0_0_30px_#ccff00]">
-                    <span className="text-3xl font-bold text-black">T</span>
+                
+                {/* REPLACED "T" WITH REAL LOGO */}
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-black border border-white/10 rounded-full mb-6 shadow-[0_0_30px_rgba(204,255,0,0.2)] overflow-hidden">
+                    <img 
+                        src="/logo.png" 
+                        alt="Tripura E-Library Logo" 
+                        className="w-12 h-12 object-contain"
+                    />
                 </div>
-                {/* WELCOME TITLE */}
+
                 <h1 className="text-4xl text-white font-serif italic mb-2">
                     {isSignUp ? "New Identity" : "Welcome"}
                 </h1>
@@ -113,7 +118,6 @@ export default function LoginPage({ onLogin }) {
 
             <div className="space-y-4 backdrop-blur-xl bg-white/5 p-8 rounded-3xl border border-white/10">
                 
-                {/* GOOGLE AUTH BUTTON */}
                 <button 
                   onClick={handleGoogleLogin}
                   disabled={loading}
@@ -157,7 +161,6 @@ export default function LoginPage({ onLogin }) {
                               className="w-full bg-black/50 border border-white/20 rounded-lg p-4 text-white focus:border-acid-lime focus:outline-none transition-colors pr-12" 
                               required
                             />
-                            {/* PASSWORD EYE TOGGLE */}
                             <button 
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}

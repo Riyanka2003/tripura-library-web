@@ -8,10 +8,9 @@ export default function LoadingScreen({ onComplete }) {
       setProgress((old) => {
         if (old >= 100) {
           clearInterval(timer);
-          setTimeout(onComplete, 500); // Wait 0.5s then finish
+          setTimeout(onComplete, 500); 
           return 100;
         }
-        // Random speed for realistic "hacking" feel
         return old + Math.floor(Math.random() * 5) + 2; 
       });
     }, 100);
@@ -19,8 +18,17 @@ export default function LoadingScreen({ onComplete }) {
   }, [onComplete]);
 
   return (
-    // Changed 'cursor-none' to 'cursor-default' to ensure the arrow icon is visible
     <div className="fixed inset-0 bg-black z-[999] flex flex-col items-center justify-center font-mono cursor-default">
+      
+      {/* BRAND LOGO ADDITION */}
+      <div className="mb-12 animate-in fade-in zoom-in duration-700">
+        <img 
+          src="/logo.png" 
+          alt="Tripura E-Library Logo" 
+          className="w-24 h-24 object-contain animate-pulse"
+        />
+      </div>
+
       <div className="w-64 mb-4">
           <div className="flex justify-between text-acid-lime text-xs mb-2 uppercase tracking-widest">
               <span>System Boot</span>
@@ -33,8 +41,9 @@ export default function LoadingScreen({ onComplete }) {
               ></div>
           </div>
       </div>
-      <div className="text-white/50 text-[10px] animate-pulse">
-          INITIALIZING NEURAL ARCHIVE...
+      
+      <div className="text-white/50 text-[10px] animate-pulse uppercase tracking-[0.2em]">
+          Initializing Neural Archive...
       </div>
     </div>
   );
